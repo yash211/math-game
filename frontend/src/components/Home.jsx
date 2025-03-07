@@ -99,20 +99,87 @@ const Home = () => {
   if (gameStatus === 'idle' || gameStatus === 'gameOver') {
     return (
       <div style={styles.gameOverlay}>
-        <div style={styles.gameCard}>
-          <h1 style={styles.title}>Math Bubble Blaster</h1>
+        <div style={{
+          ...styles.gameCard,
+          backgroundColor: '#f0f8ff',
+          borderRadius: '16px',
+          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)',
+          padding: '25px',
+          border: '3px solid #3498db'
+        }}>
+          <h1 style={{
+            ...styles.title,
+            color: '#2c3e50',
+            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.1)',
+            marginBottom: '20px'
+          }}>Math Bubble Blaster</h1>
+          
           {gameStatus === 'gameOver' && (
+            <div style={{
+              backgroundColor: '#ffebee', 
+              padding: '15px', 
+              borderRadius: '12px',
+              border: '2px solid #ff5252',
+              marginBottom: '20px'
+            }}>
+              <p style={{fontSize: '24px', fontWeight: 'bold', marginBottom: '8px', color: '#d32f2f'}}>Game Over!</p>
+              <p style={{fontSize: '20px', marginBottom: '10px', color: '#333'}}>Final Score: <span style={{fontWeight: 'bold', color: '#2196f3'}}>{score}</span></p>
+            </div>
+          )}
+          
+          {gameStatus === 'idle' && (
             <>
-              <p style={{fontSize: '24px', fontWeight: 'bold', marginBottom: '8px'}}>Game Over!</p>
-              <p style={{fontSize: '18px', marginBottom: '20px'}}>Final Score: {score}</p>
+              <p style={{fontSize: '18px', marginBottom: '20px', color: '#444'}}>Pop the bubble with the correct answer!</p>
+              
+              <div style={{
+                backgroundColor: '#e8f5e9',
+                borderRadius: '12px',
+                padding: '15px',
+                marginBottom: '25px',
+                border: '2px solid #66bb6a'
+              }}>
+                <h3 style={{
+                  textAlign: 'center', 
+                  marginTop: '0',
+                  marginBottom: '15px', 
+                  color: '#2e7d32',
+                  fontSize: '20px',
+                  borderBottom: '1px solid #a5d6a7',
+                  paddingBottom: '8px'
+                }}>GAME RULES</h3>
+                
+                <ul style={{
+                  paddingLeft: '20px',
+                  marginBottom: '0',
+                  fontSize: '15px',
+                  color: '#1b5e20',
+                  listStyleType: 'none'
+                }}>
+                  <li style={{marginBottom: '8px'}}>Click the bubble with the correct answer</li>
+                  <li style={{marginBottom: '8px'}}>Don't let bubbles reach the red line at the bottom</li>
+                  <li style={{marginBottom: '0'}}>Clicking a wrong bubble ends the game</li>
+                </ul>
+              </div>
             </>
           )}
-          {gameStatus === 'idle' && (
-            <p style={{fontSize: '16px', marginBottom: '20px'}}>Pop the bubble with the correct answer!</p>
-          )}
+          
           <button
             onClick={initGame}
-            style={styles.startButton}
+            style={{
+              ...styles.startButton,
+              backgroundColor: '#2196f3',
+              padding: '12px 25px',
+              fontSize: '18px',
+              fontWeight: 'bold',
+              borderRadius: '30px',
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer',
+              boxShadow: '0 4px 10px rgba(33, 150, 243, 0.4)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#1976d2'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#2196f3'}
           >
             {gameStatus === 'gameOver' ? 'Play Again' : 'Start Game'}
           </button>
