@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { players, playerTargets, playerProblems } from './gameState';
-import { generateMathProblem, checkLevelUp, startTargetGeneration, generateTarget } from './helper_function';
+import { generateMathProblem, checkLevelUp, multiple_target_generation, craeteBubble } from './helper_function';
 
 export function setupSocketHandlers(io: Server) {
   io.on('connection', (socket: Socket) => {
@@ -25,7 +25,7 @@ export function setupSocketHandlers(io: Server) {
       problem
     });
     
-    // Initialize game
+    
     socket.on('initGame', ({ width }) => {
       const player = players.get(socket.id);
       if (!player) return;
@@ -46,7 +46,7 @@ export function setupSocketHandlers(io: Server) {
       });
       
       // Start the target generation with staggered timing
-      startTargetGeneration(io, socket.id);
+      multiple_target_generation(io, socket.id);
     });
     
     // Stop game
@@ -84,20 +84,18 @@ export function setupSocketHandlers(io: Server) {
         playerProblems.set(socket.id, problem);
         socket.emit('newProblem', problem);
         
-        // Check if player should level up
+        
         if (checkLevelUp(player)) {
           player.level++;
           socket.emit('levelUpdate', player.level);
         }
         
-        // Clear existing targets when a new problem starts
+        //clear target after new problem has started
         playerTargets.set(socket.id, []);
         socket.emit('targetsUpdate', []);
-        
-        // Restart bubble generation for the new problem
-        startTargetGeneration(io, socket.id);
+        multiple_target_generation(io, socket.id);
       } else {
-        // Add a replacement bubble with a slight delay to avoid all bubbles appearing at once
+       
         setTimeout(() => {
           const currentPlayer = players.get(socket.id);
           const currentProblem = playerProblems.get(socket.id);
@@ -112,14 +110,14 @@ export function setupSocketHandlers(io: Server) {
           // If the hit target was the correct answer and we need a new one
           const forceCorrect = hitTarget?.value === currentProblem.answer && !hasCorrectBubble;
           
-          const newTarget = generateTarget(currentPlayer, currentProblem, forceCorrect, !forceCorrect);
+          const newTarget = craeteBubble(currentPlayer, currentProblem, forceCorrect, !forceCorrect);
           
           playerTargets.set(socket.id, [...currentTargets, newTarget]);
           socket.emit('newTarget', newTarget);
         }, Math.random() * 500 + 200); // Random delay between 200-700ms
       }
       
-      // Send updated targets
+      
       socket.emit('targetsUpdate', playerTargets.get(socket.id) || []);
     });
     
@@ -131,7 +129,7 @@ export function setupSocketHandlers(io: Server) {
       const targets = playerTargets.get(socket.id) || [];
       const target = targets.find(t => t.id === id);
       
-      // Penalize player if target is missed
+      
       if (target && target.value === playerProblems.get(socket.id)?.answer) {
         player.score = Math.max(0, player.score - 25);
         socket.emit('scoreUpdate', player.score);
@@ -144,7 +142,7 @@ export function setupSocketHandlers(io: Server) {
         socket.emit('gameOver');
       }
       
-      // Replace the missed target with a slight delay
+      //replacing target with slight delay
       setTimeout(() => {
         const currentPlayer = players.get(socket.id);
         const currentProblem = playerProblems.get(socket.id);
@@ -159,11 +157,11 @@ export function setupSocketHandlers(io: Server) {
         // If the missed target was the correct answer and we need a new one
         const forceCorrect = target?.value === currentProblem.answer && !hasCorrectBubble;
         
-        const newTarget = generateTarget(currentPlayer, currentProblem, forceCorrect, !forceCorrect);
+        const newTarget = craeteBubble(currentPlayer, currentProblem, forceCorrect, !forceCorrect);
         
         playerTargets.set(socket.id, [...currentTargets, newTarget]);
         socket.emit('newTarget', newTarget);
-      }, Math.random() * 500 + 300); // Random delay between 300-800ms
+      }, Math.random() * 500 + 300); 
     });
     
     socket.on('updateTargetPositions', (updatedTargets) => {

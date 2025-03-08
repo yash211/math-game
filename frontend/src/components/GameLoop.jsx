@@ -1,7 +1,8 @@
-
 import React, { useEffect, useRef } from 'react';
 import useGameStore from '../store/gameStore';
 
+
+// Main game loop for updating target positions
 const GameLoop = () => {
   const { 
     gameStatus, 
@@ -11,8 +12,7 @@ const GameLoop = () => {
   } = useGameStore();
   
   const frameCount = useRef(0);
-  
-  // Main game loop for updating target positions
+
   useEffect(() => {
     if (gameStatus !== 'playing') return;
 

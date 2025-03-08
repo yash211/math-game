@@ -4,12 +4,12 @@ import { Server } from 'socket.io';
 
 // Generate math equations
 export function generateMathProblem(level: number): MathProblem {
-  const operations = ['+', '-', '*'];
-  const operation = operations[Math.floor(Math.random() * (level === 1 ? 2 : 3))];
+  const operands = ['+', '-', '*'];
+  const sign = operands[Math.floor(Math.random() * (level === 1 ? 2 : 3))];
   
   let num1: number, num2: number, answer: number;
   
-  switch (operation) {
+  switch (sign) {
     case '+':
       num1 = Math.floor(Math.random() * (10 * level)) + 1;
       num2 = Math.floor(Math.random() * (10 * level)) + 1;
@@ -32,30 +32,27 @@ export function generateMathProblem(level: number): MathProblem {
   }
   
   return {
-    question: `${num1} ${operation} ${num2}`,
+    question: `${num1} ${sign} ${num2}`,
     answer
   };
 }
 
 // Generate a wrong answer that's different from existing values
-export function generateUniqueWrongAnswer(problem: MathProblem, existingValues: number[]): number {
-  // Generate values within a reasonable range of the correct answer
-  const min = Math.max(1, problem.answer - 10);
-  const max = problem.answer + 10;
-  
-  let attempts = 0;
+export function generate_wrong_answer(problem: MathProblem, existingValues: number[]): number {
+
+  let no_of_attempts = 0;
   let value;
   
   do {
-    // Create a wrong answer that's reasonably close to the correct one
+    //Wrong answer which are close to correct answers
     const offset = Math.floor(Math.random() * 10) + 1;
     value = Math.random() < 0.5 
       ? problem.answer + offset 
       : Math.max(1, problem.answer - offset);
     
-    attempts++;
-    // If we can't find a unique value after many attempts, just add a larger offset
-    if (attempts > 10) {
+    no_of_attempts++;
+    // add larger offset values
+    if (no_of_attempts > 10) {
       value = problem.answer + (Math.floor(Math.random() * 20) + 11) * (Math.random() < 0.5 ? 1 : -1);
     }
   } while (existingValues.includes(value) || value === problem.answer);
@@ -64,81 +61,83 @@ export function generateUniqueWrongAnswer(problem: MathProblem, existingValues: 
 }
 
 // Generate target bubble
-export function generateTarget(player: Player, problem: MathProblem, forceCorrect: boolean = false, forceWrong: boolean = false): Target {
+export function craeteBubble(player: Player, problem: MathProblem, forceCorrect: boolean = false, forceWrong: boolean = false): Target {
   const windowWidth = player.windowWidth || 800;
   const targets = playerTargets.get(player.id) || [];
   
   // Get all existing values to avoid duplicates
   const existingValues = targets.map(t => t.value);
   
-  // Decide if this target should have the correct answer
-  const hasCorrectBubble = targets.some(target => target.value === problem.answer);
+ 
+  const isCorrect = targets.some(target => target.value === problem.answer);
   
   let value: number;
-  if (forceCorrect || (!hasCorrectBubble && !forceWrong)) {
-    // This will be our one correct answer bubble
+  if (forceCorrect || (!isCorrect && !forceWrong)) {
+    
     value = problem.answer;
   } else {
-    // Generate a wrong answer that's not a duplicate
-    value = generateUniqueWrongAnswer(problem, existingValues);
+    
+    value = generate_wrong_answer(problem, existingValues);
   }
+
+  //bubble preparation
   
   const size = 50; 
   const baseSpeed = 0.7; 
-  const levelSpeedBonus = player.level * 0.2; 
-  // Add more variation to speeds so bubbles don't move together
-  const randomSpeedVariation = Math.random() * 0.5; 
-  const speed = baseSpeed + levelSpeedBonus + randomSpeedVariation;
+  const increment_speed_wrt_level = player.level * 0.2; 
+  
+  const rspeedvar = Math.random() * 0.5; 
+  const speed = baseSpeed + increment_speed_wrt_level + rspeedvar;
 
-  // Find a position that doesn't overlap with existing bubbles
+  
   let x = 0;
-  let overlapping = false;
+  let over_lapping_bubbles = false;
   const maxAttempts = 10;
   let attempts = 0;
   
   do {
     attempts++;
-    overlapping = false;
+    over_lapping_bubbles = false;
     x = Math.random() * (windowWidth - size * 2) + size;
     
-    // Check for overlap with existing targets
+   
     for (const target of targets) {
       const distance = Math.sqrt(Math.pow(x - target.x, 2) + Math.pow(-size - target.y, 2));
       if (distance < (size + target.size)) {
-        overlapping = true;
+        over_lapping_bubbles = true;
         break;
       }
     }
-  } while (overlapping && attempts < maxAttempts);
+  } while (over_lapping_bubbles && attempts < maxAttempts);
 
-  // Add some variation to starting Y position to stagger the bubbles
-  const startingY = -size - (Math.random() * 200);
+  
+  const y_value = -size - (Math.random() * 200);
 
   return {
     id: Math.random().toString(36).substring(7),
     x,
-    y: startingY,
+    y: y_value,
     value,
     speed,
     size
   };
 }
 
-// Check if player should level up
+// level up
 export function checkLevelUp(player: Player): boolean {
   const shouldLevelUp = Math.floor(player.score / 500) + 1 > player.level;
   return shouldLevelUp;
 }
 
 // Target generation function
-export function startTargetGeneration(io: Server, playerId: string) {
-  // Clear any existing intervals
+export function multiple_target_generation(io: Server, playerId: string) {
+ 
   if (targetIntervals.has(playerId)) {
     clearInterval(targetIntervals.get(playerId));
     targetIntervals.delete(playerId);
   }
   
-  // Clear any existing timers
+ 
   if (staggeredTargetTimers.has(playerId)) {
     staggeredTargetTimers.get(playerId)?.forEach(timer => clearTimeout(timer));
     staggeredTargetTimers.delete(playerId);
@@ -151,14 +150,14 @@ export function startTargetGeneration(io: Server, playerId: string) {
     return;
   }
   
-  // Create an initial set of bubbles with staggered appearance
+  // initially setting it to 6 bubbles
   const initialTimers: NodeJS.Timeout[] = [];
-  const totalBubbles = 6; // Start with 6 bubbles
+  const totalBubbles = 6; 
   
-  // Randomly decide which bubble will have the correct answer
+  
   const correctBubbleIndex = Math.floor(Math.random() * totalBubbles);
   
-  // Create all bubbles with staggered timing
+  //first time targets generation
   for (let i = 0; i < totalBubbles; i++) {
     const timer = setTimeout(() => {
       const currentPlayer = players.get(playerId);
@@ -168,23 +167,23 @@ export function startTargetGeneration(io: Server, playerId: string) {
         return;
       }
       
-      // This bubble should be the correct answer if it matches the random index
+      
       const isCorrectBubble = (i === correctBubbleIndex);
       
-      const newTarget = generateTarget(currentPlayer, currentProblem, isCorrectBubble, !isCorrectBubble);
+      const newTarget = craeteBubble(currentPlayer, currentProblem, isCorrectBubble, !isCorrectBubble);
       
       const targets = playerTargets.get(playerId) || [];
       playerTargets.set(playerId, [...targets, newTarget]);
       
       io.to(playerId).emit('newTarget', newTarget);
-    }, 500 + (i * 400)); // Stagger each bubble by 400ms
+    }, 500 + (i * 400)); 
     
     initialTimers.push(timer);
   }
   
   staggeredTargetTimers.set(playerId, initialTimers);
   
-  // Maintain bubble count over time
+  // bubble generation in every 2 seconds
   const interval = setInterval(() => {
     const currentPlayer = players.get(playerId);
     const currentProblem = playerProblems.get(playerId);
@@ -196,19 +195,18 @@ export function startTargetGeneration(io: Server, playerId: string) {
     }
     
     const targets = playerTargets.get(playerId) || [];
-    const minTargets = 5 + Math.min(3, currentPlayer.level); // 5-8 bubbles depending on level
+    const minTargets = 5 + Math.min(3, currentPlayer.level); 
     
-    // If we need more bubbles
+    
     if (targets.length < minTargets) {
       const hasCorrectBubble = targets.some(t => t.value === currentProblem.answer);
       
-      // Create a new bubble (correct if needed, otherwise wrong)
-      const newTarget = generateTarget(currentPlayer, currentProblem, !hasCorrectBubble, hasCorrectBubble);
+      const newTarget = craeteBubble(currentPlayer, currentProblem, !hasCorrectBubble, hasCorrectBubble);
       
       playerTargets.set(playerId, [...targets, newTarget]);
       io.to(playerId).emit('newTarget', newTarget);
     }
-  }, 2000); // Check every 2 seconds
+  }, 2000); 
   
   targetIntervals.set(playerId, interval);
 }

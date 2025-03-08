@@ -25,8 +25,6 @@ const Canvas = () => {
     const handleResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight - 30;
-      //To notify abt the screen window size
-      socket.emit('windowSize', { width: window.innerWidth });
     };
 
     handleResize();
@@ -48,13 +46,12 @@ const Canvas = () => {
     let animationFrameId;
     
     const render = () => {
-      // Update target positions
       updateTargets();
       
       
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      
+      //Bottom red line
       ctx.beginPath();
       ctx.moveTo(0, canvas.height - 5);
       ctx.lineTo(canvas.width, canvas.height - 5);
@@ -66,12 +63,11 @@ const Canvas = () => {
       targets.forEach(target => {
         // Check if target has reached the bottom
         if (target.y + target.size > canvas.height - 5) {
-          // Handle target hitting the bottom
           if (target.value === currentProblem.answer) {
-            // Game over if correct answer hits bottom
+            
             setGameStatus('gameOver');
           } else {
-            // Remove incorrect bubbles that hit the bottom
+            
             handleTargetMiss(target.id);
           }
           return;
