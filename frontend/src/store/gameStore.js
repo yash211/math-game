@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3000');
+// const socket = io('http://localhost:3000');
+const socket = io(import.meta.env.VITE_BACKEND_URL);
+
 
 const useGameStore = create((set, get) => ({
   score: 0,

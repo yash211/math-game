@@ -3,6 +3,8 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { setupSocketHandlers } from './src/socketHandler';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Setup Express and Socket.io
 const app = express();
