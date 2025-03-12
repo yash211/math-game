@@ -23,19 +23,53 @@ The game heavily relies on WebSockets for seamless interaction between the front
 - **Socket.IO**: Gained hands-on experience with WebSockets and real-time data flow.
 - **Canvas 2D API**: Learned how to create and manipulate interactive visual elements in a web-based game.
 
+## Setup Instructions
 
-## How to Run
-1. Clone this repository:
-```
-git clone https://github.com/yash211/math-game.git
-```
-2. Install backend & frontend dependencies:
-```
-npm install
-```
-3. Start the backend & frontend server:
-```
-npm run dev
-```
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/yash211/math-game.git
+   cd math-game
+   ```
 
-Enjoy the game!
+2. **Install Dependencies:**
+   For the backend:
+   ```bash
+   cd backend
+   npm install
+   ```
+   For the frontend:
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+3. **Set Up Environment Variables:**
+   Backend `.env` file:
+   ```env
+   PORT=3000
+   CLIENT_URL=http://localhost:5173
+   ```
+   Frontend `.env` file:
+   ```env
+   VITE_BACKEND_URL=http://localhost:3000
+   ```
+
+4. **Run the Backend:**
+   ```bash
+   cd backend
+   npm run dev
+   ```
+
+5. **Run the Frontend:**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+6. **Open the Game:**
+   Open your browser and go to `http://localhost:5173`.
+
+**Play and Enjoy!**
+
+
+
